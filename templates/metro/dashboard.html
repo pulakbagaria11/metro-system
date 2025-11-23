@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>My Dashboard</h2>
+<a href="{% url 'add_money' %}" class="btn btn-outline-primary mb-3">Add Funds</a>
+<h3>My Tickets</h3>
+<table class="table">
+    <thead><tr><th>ID</th><th>Route</th><th>Price</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for ticket in tickets %}
+        <tr>
+            <td>#{{ ticket.id }}</td>
+            <td>{{ ticket.source }} -> {{ ticket.destination }}</td>
+            <td>${{ ticket.price }}</td>
+            <td>
+                <span class="badge {% if ticket.status == 'ACTIVE' %}bg-success{% elif ticket.status == 'IN_USE' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {{ ticket.status }}
+                </span>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

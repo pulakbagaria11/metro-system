@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Daily Station Footfall (Today)</h2>
+<table class="table table-striped">
+    <thead><tr><th>Station</th><th>Entries</th><th>Exits</th></tr></thead>
+    <tbody>
+    {% for log in footfall %}
+        <tr>
+            <td>{{ log.station.name }}</td>
+            <td>{{ log.entry_count }}</td>
+            <td>{{ log.exit_count }}</td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="3">No data for today yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

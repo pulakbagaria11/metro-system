@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Purchase Ticket</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label>Source Station</label>
+        <select name="source" class="form-control">
+            {% for station in stations %}
+                <option value="{{ station.id }}">{{ station.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Destination Station</label>
+        <select name="destination" class="form-control">
+            {% for station in stations %}
+                <option value="{{ station.id }}">{{ station.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Buy Ticket</button>
+</form>
+{% endblock %}

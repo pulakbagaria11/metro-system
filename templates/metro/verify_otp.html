@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h2>Verify OTP</h2>
+            <p>We sent a 6-digit code to <strong>{{ user.email }}</strong>.</p>
+            <p class="text-muted"><small>Check your terminal console if running locally!</small></p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label>Enter Code</label>
+                    <input type="text" name="otp" class="form-control" placeholder="123456" required>
+                </div>
+                <button type="submit" class="btn btn-success">Confirm Purchase</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); transform: scale(1); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); transform: scale(1.2); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); transform: scale(1); }
+    }
+    
+    .active-route-node {
+        background-color: #ff3333 !important;
+        border-color: #fff !important;
+        animation: pulse-glow 1.5s infinite;
+        z-index: 100 !important;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>🚆 Metro Network Map</h2>
+        <div class="alert alert-info py-2 px-4 m-0">
+            <strong>Current Ticket:</strong> {{ route_info }}
+        </div>
+    </div>
+
+    <div class="metro-map-container bg-white p-5 rounded shadow-sm" style="overflow-x: auto;">
+        
+        {% for line in lines %}
+            <div class="metro-line-wrapper mb-5">
+                <h4 class="mb-3" style="color: 
+                    {% if 'red' in line.name|lower %}#dc3545
+                    {% elif 'blue' in line.name|lower %}#0d6efd
+                    {% elif 'yellow' in line.name|lower %}#ffc107
+                    {% elif 'green' in line.name|lower %}#198754
+                    {% else %}#6c757d{% endif %};">
+                    {{ line.name }}
+                </h4>
+                
+                <div class="d-flex align-items-center position-relative" style="padding-bottom: 20px;">
+                    
+                    <div class="position-absolute w-100" 
+                         style="height: 8px; top: 16px; z-index: 0; background-color: 
+                         {% if 'red' in line.name|lower %}#dc3545
+                         {% elif 'blue' in line.name|lower %}#0d6efd
+                         {% elif 'yellow' in line.name|lower %}#ffc107
+                         {% elif 'green' in line.name|lower %}#198754
+                         {% else %}#6c757d{% endif %};">
+                    </div>
+
+                    {% for station in line.stations.all %}
+                        <div class="station-node text-center position-relative mx-3" style="min-width: 100px; z-index: 1;">
+                            
+                            {% if station.name in interchange_names %}
+                                <div class="bg-white border border-3 border-dark rounded-circle mx-auto d-flex align-items-center justify-content-center {% if station.id in active_path_ids %}active-route-node{% endif %}" 
+                                     style="width: 32px; height: 32px; cursor: pointer;"
+                                     title="Change Lines Here">
+                                    <span class="fw-bold" style="font-size: 10px;">⇄</span>
+                                </div>
+                            {% else %}
+                                <div class="rounded-circle mx-auto border border-2 border-white {% if station.id in active_path_ids %}active-route-node{% endif %}" 
+                                     style="width: 20px; height: 20px; background-color: black;">
+                                </div>
+                            {% endif %}
+
+                            <div class="mt-2 fw-bold small text-nowrap">
+                                {{ station.name }}
+                            </div>
+                            
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock %}

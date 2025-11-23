@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-5 bg-dark text-white rounded">
+    <h2>Scanner Interface</h2>
+    <p>Simulates a physical turnstile scanner.</p>
+    
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-auto">
+            <input type="text" name="ticket_id" class="form-control" placeholder="Enter Ticket ID (e.g., 1)">
+        </div>
+        <div class="col-auto">
+            <button type="submit" name="action" value="entry" class="btn btn-success">Scan ENTRY</button>
+        </div>
+        <div class="col-auto">
+            <button type="submit" name="action" value="exit" class="btn btn-danger">Scan EXIT</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
