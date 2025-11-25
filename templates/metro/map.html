@@ -2,77 +2,175 @@
 
 {% block content %}
 <style>
-    @keyframes pulse-glow {
-        0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); transform: scale(1); }
-        70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); transform: scale(1.2); }
-        100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); transform: scale(1); }
+
+        :root {
+        --canvas-width: 1200px;
+        --canvas-height: 1500px;
+
+        --yellow-left:   157px;
+        --yellow-top:    190px;
+        --yellow-len:    600px;
+
+        --blue-left:     700px;
+        --blue-top:      50px;
+        --blue-len:      600px;
+
+        --red-top:       558px;
+        --red-left:      535px;
+        --red-len:       600px;
+
+        --green-top:     698px;
+        --green-left:    135px;
+        --green-len:     1000px;
+
+        --station-gap:   60px;
+        --line-thick:    8px;
+        --dot-size:      14px;
+    }
+
+    .metro-container {
+        display: flex; justify-content: center; padding: 20px; background: #f4f4f4;
+    }
+
+    .metro-canvas {
+        position: relative;
+        width: var(--canvas-width); height: var(--canvas-height);
+        background-color: white; border: 2px solid #ddd; border-radius: 8px;
+        overflow: hidden; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+        background-size: 50px 50px; 
+    }
+
+    .metro-line {
+        position: absolute; display: flex; align-items: center; justify-content: flex-start;
+        box-sizing: content-box; z-index: 1; overflow: visible;
     }
     
-    .active-route-node {
-        background-color: #ff3333 !important;
-        border-color: #fff !important;
-        animation: pulse-glow 1.5s infinite;
-        z-index: 100 !important;
+    .line-v {
+        flex-direction: column;
+        width: var(--line-thick) !important; min-width: var(--line-thick) !important; max-width: var(--line-thick) !important;
+        padding: 40px 0; transform-origin: top center;
     }
+    
+    .line-h {
+        flex-direction: row;
+        height: var(--line-thick) !important; min-height: var(--line-thick) !important; max-height: var(--line-thick) !important;
+        padding: 0 40px; transform-origin: center left;
+    }
+
+    .station-wrapper {
+        position: relative; display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; z-index: 5;
+    }
+    
+    .line-v .station-wrapper { margin: var(--station-gap) 0; }
+    .line-h .station-wrapper { margin: 0 var(--station-gap); }
+
+    .station-dot {
+        width: var(--dot-size); height: var(--dot-size);
+        background: white; border: 3px solid #555; border-radius: 50%; 
+        cursor: pointer; transition: 0.3s; z-index: 10;
+        box-shadow: 0 0 0 2px white;
+    }
+
+    .interchange-dot {
+        width: calc(var(--dot-size) + 6px); height: calc(var(--dot-size) + 6px); border-width: 4px; z-index: 15;
+    }
+
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); transform: scale(1); }
+        100% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); transform: scale(1); }
+    }
+    .active-station {
+        background-color: #dc3545 !important; border-color: #fff !important;
+        animation: pulse-red 1.5s infinite; z-index: 20;
+    }
+
+    .station-label {
+        position: absolute; font-size: 10px; font-weight: bold; 
+        background: rgba(255,255,255,0.9); padding: 2px 5px; border-radius: 3px;
+        white-space: nowrap; pointer-events: none; color: #333;
+    }
+    .line-v .station-label { left: 20px; }
+    .line-h .station-label { top: -25px; transform: rotate(-45deg); left: -5px; }
+
 </style>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>🚆 Metro Network Map</h2>
-        <div class="alert alert-info py-2 px-4 m-0">
-            <strong>Current Ticket:</strong> {{ route_info }}
-        </div>
+        <h2>🗺️ Network Map</h2>
+        <span class="badge bg-dark p-2">{{ route_info }}</span>
     </div>
 
-    <div class="metro-map-container bg-white p-5 rounded shadow-sm" style="overflow-x: auto;">
-        
-        {% for line in lines %}
-            <div class="metro-line-wrapper mb-5">
-                <h4 class="mb-3" style="color: 
-                    {% if 'red' in line.name|lower %}#dc3545
-                    {% elif 'blue' in line.name|lower %}#0d6efd
-                    {% elif 'yellow' in line.name|lower %}#ffc107
-                    {% elif 'green' in line.name|lower %}#198754
-                    {% else %}#6c757d{% endif %};">
-                    {{ line.name }}
-                </h4>
+    <div class="metro-container">
+        <div class="metro-canvas">
+            
+            {% for line in lines %}
                 
-                <div class="d-flex align-items-center position-relative" style="padding-bottom: 20px;">
-                    
-                    <div class="position-absolute w-100" 
-                         style="height: 8px; top: 16px; z-index: 0; background-color: 
-                         {% if 'red' in line.name|lower %}#dc3545
-                         {% elif 'blue' in line.name|lower %}#0d6efd
-                         {% elif 'yellow' in line.name|lower %}#ffc107
-                         {% elif 'green' in line.name|lower %}#198754
-                         {% else %}#6c757d{% endif %};">
-                    </div>
+                {% if 'yellow' in line.name|lower %}
+                <div class="metro-line line-v" 
+                     style="left: var(--yellow-left); top: var(--yellow-top); height: var(--yellow-len); background: #ffc107;">
+                
+                {% elif 'blue' in line.name|lower %}
+                <div class="metro-line line-v" 
+                     style="left: var(--blue-left); top: var(--blue-top); height: var(--blue-len); background: #0d6efd; z-index: 5;">
+                
+                {% elif 'red' in line.name|lower %}
+                <div class="metro-line line-h" 
+                     style="
+                        top: var(--red-top); left: var(--red-left); width: var(--red-len); background: #dc3545;
+                        flex-direction: row-reverse; 
+                     ">
+                
+                {% elif 'green' in line.name|lower %}
+                <div class="metro-line line-h" 
+                     style="
+                        top: var(--green-top); left: var(--green-left); width: var(--green-len); background: #198754; z-index: 2;;
+                        flex-direction: row-reverse;
+                     ">
+                
+                {% else %}
+                <div class="metro-line line-h" style="top: 50px; left: 50px; width: 300px; background: #6c757d;">
+                {% endif %}
 
                     {% for station in line.stations.all %}
-                        <div class="station-node text-center position-relative mx-3" style="min-width: 100px; z-index: 1;">
-                            
-                            {% if station.name in interchange_names %}
-                                <div class="bg-white border border-3 border-dark rounded-circle mx-auto d-flex align-items-center justify-content-center {% if station.id in active_path_ids %}active-route-node{% endif %}" 
-                                     style="width: 32px; height: 32px; cursor: pointer;"
-                                     title="Change Lines Here">
-                                    <span class="fw-bold" style="font-size: 10px;">⇄</span>
-                                </div>
-                            {% else %}
-                                <div class="rounded-circle mx-auto border border-2 border-white {% if station.id in active_path_ids %}active-route-node{% endif %}" 
-                                     style="width: 20px; height: 20px; background-color: black;">
-                                </div>
-                            {% endif %}
-
-                            <div class="mt-2 fw-bold small text-nowrap">
-                                {{ station.name }}
+                        <div class="station-wrapper">
+                            <div class="station-dot 
+                                {% if station.name in interchange_names %}interchange-dot{% endif %}
+                                {% if station.id in active_path_ids %}active-station{% endif %}"
+                                style="border-color: 
+                                    {% if 'yellow' in line.name|lower %}#ffc107
+                                    {% elif 'blue' in line.name|lower %}#0d6efd
+                                    {% elif 'red' in line.name|lower %}#dc3545
+                                    {% elif 'green' in line.name|lower %}#198754
+                                    {% endif %};"
+                                title="{{ station.name }}">
                             </div>
-                            
+                            <div class="station-label">{{ station.name }}</div>
                         </div>
                     {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
 
+                </div>
+            {% endfor %}
+
+        </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const seenLabels = new Set();
+        const labels = document.querySelectorAll('.station-label');
+
+        labels.forEach(label => {
+            const text = label.innerText.trim();
+            if (seenLabels.has(text)) {
+                label.style.display = 'none';
+            } else {
+                seenLabels.add(text);
+            }
+        });
+    });
+</script>
 {% endblock %}
