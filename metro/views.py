@@ -72,6 +72,17 @@ def get_shortest_path(start_station, end_station):
 
 @login_required
 def dashboard(request):
+    if request.method == "POST" and 'add_funds' in request.POST:
+        try:
+            amount = Decimal(request.POST.get('amount'))
+            if amount > 0:
+                request.user.profile.balance += amount
+                request.user.profile.save()
+                messages.success(request, f"Successfully added ${amount} to your wallet!")
+                return redirect('dashboard')
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid amount entered.")
+
     tickets = Ticket.objects.filter(user=request.user).order_by('-purchase_time')
     return render(request, 'metro/dashboard.html', {'tickets': tickets})
 
@@ -125,7 +136,7 @@ def buy_ticket(request):
         
         if request.user.profile.balance < price:
             messages.error(request, "Insufficient Balance.")
-            return redirect('add_money')
+            return redirect('dashboard') 
             
         otp_code = str(random.randint(100000, 999999))
         
@@ -161,7 +172,7 @@ def verify_otp(request):
         if txn.otp_code == entered_otp and txn.is_valid():
             if request.user.profile.balance < txn.price:
                 messages.error(request, "Insufficient Balance.")
-                return redirect('add_money')
+                return redirect('dashboard')
 
             request.user.profile.balance -= Decimal(txn.price)
             request.user.profile.save()
@@ -186,7 +197,12 @@ def verify_otp(request):
     
     return render(request, 'metro/verify_otp.html')
 
+@login_required
 def scanner_view(request):
+    if request.user.username != 'scanner':
+        messages.error(request, "ACCESS DENIED: Restricted Area.")
+        return redirect('dashboard')
+
     if request.method == 'POST':
         ticket_id = request.POST.get('ticket_id')
         action = request.POST.get('action') 
@@ -203,6 +219,8 @@ def scanner_view(request):
                     log.entry_count += 1
                     log.save()
                     messages.success(request, f"Ticket #{ticket.id} Scanned IN at {ticket.source.name}")
+                elif ticket.status == 'IN_USE':
+                    messages.warning(request, f"ALREADY SCANNED IN!")
                 else:
                     messages.error(request, f"Invalid Entry! Status is {ticket.status}")
             
@@ -214,11 +232,15 @@ def scanner_view(request):
                     log.exit_count += 1
                     log.save()
                     messages.success(request, f"Ticket #{ticket.id} Scanned OUT at {ticket.destination.name}")
+                elif ticket.status == 'ACTIVE':
+                    messages.error(request, "Ticket was never scanned at Entry!")
                 else:
                     messages.error(request, f"Invalid Exit! Status is {ticket.status}")
                     
         except Ticket.DoesNotExist:
             messages.error(request, "Ticket not found.")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
             
     return render(request, 'metro/scanner.html')
 
@@ -226,3 +248,16 @@ def scanner_view(request):
 def admin_stats(request):
     footfall = StationFootfall.objects.filter(date=timezone.now().date())
     return render(request, 'metro/admin_stats.html', {'footfall': footfall})
+
+
+@login_required
+def login_success(request):
+    """
+    Redirects users based on their role.
+    """
+    if request.user.username == 'scanner':
+        return redirect('scanner') 
+    elif request.user.is_superuser:
+        return redirect('admin_stats') 
+    else:
+        return redirect('dashboard') 

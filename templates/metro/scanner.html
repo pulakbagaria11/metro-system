@@ -1,20 +1,61 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="p-5 bg-dark text-white rounded">
-    <h2>Scanner Interface</h2>
-    <p>Simulates a physical turnstile scanner.</p>
-    
-    <form method="post" class="row g-3">
-        {% csrf_token %}
-        <div class="col-auto">
-            <input type="text" name="ticket_id" class="form-control" placeholder="Enter Ticket ID (e.g., 1)">
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} shadow-sm border-0 mb-4 fw-bold">
+                    {% if message.tags == 'success' %}
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                    {% else %}
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card card-modern border-0 shadow-lg">
+            <div class="card-header bg-white pt-4 border-0 text-center">
+                <h3 class="fw-bold mb-3"><i class="bi bi-terminal"></i> Terminal Scanner</h3>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" action="{% url 'scanner' %}">
+                    {% csrf_token %}
+                    
+                    <label class="form-label text-muted small fw-bold text-uppercase">Select Mode</label>
+                    <div class="btn-group w-100 mb-4" role="group">
+                        <input type="radio" class="btn-check" name="action" value="entry" id="mode_entry" checked>
+                        <label class="btn btn-outline-success fw-bold py-2" for="mode_entry">
+                            <i class="bi bi-door-open"></i> ENTRY
+                        </label>
+                    
+                        <input type="radio" class="btn-check" name="action" value="exit" id="mode_exit">
+                        <label class="btn btn-outline-danger fw-bold py-2" for="mode_exit">
+                            <i class="bi bi-door-closed"></i> EXIT
+                        </label>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="ticket_id" class="form-label text-muted small fw-bold text-uppercase">Ticket ID / QR Data</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-upc-scan"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 shadow-none" 
+                                   id="ticket_id" name="ticket_id" 
+                                   placeholder="Type Ticket ID..." required autofocus>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg fw-bold">
+                        VALIDATE TICKET
+                    </button>
+                </form>
+            </div>
         </div>
-        <div class="col-auto">
-            <button type="submit" name="action" value="entry" class="btn btn-success">Scan ENTRY</button>
-        </div>
-        <div class="col-auto">
-            <button type="submit" name="action" value="exit" class="btn btn-danger">Scan EXIT</button>
-        </div>
-    </form>
+
+    </div>
 </div>
 {% endblock %}
