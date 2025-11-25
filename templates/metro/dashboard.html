@@ -1,23 +1,66 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>My Dashboard</h2>
-<a href="{% url 'add_money' %}" class="btn btn-outline-primary mb-3">Add Funds</a>
-<h3>My Tickets</h3>
-<table class="table">
-    <thead><tr><th>ID</th><th>Route</th><th>Price</th><th>Status</th></tr></thead>
-    <tbody>
-    {% for ticket in tickets %}
-        <tr>
-            <td>#{{ ticket.id }}</td>
-            <td>{{ ticket.source }} -> {{ ticket.destination }}</td>
-            <td>${{ ticket.price }}</td>
-            <td>
-                <span class="badge {% if ticket.status == 'ACTIVE' %}bg-success{% elif ticket.status == 'IN_USE' %}bg-warning{% else %}bg-secondary{% endif %}">
-                    {{ ticket.status }}
-                </span>
-            </td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark">👋 Welcome, {{ user.username }}</h2>
+    <div class="badge bg-white text-dark shadow-sm p-3 rounded-pill border">
+        <span class="text-muted text-uppercase small fw-bold">Balance</span>
+        <span class="fs-5 fw-bold ms-2">${{ user.profile.balance }}</span>
+    </div>
+</div>
+
+<h5 class="text-muted mb-4 text-uppercase small fw-bold">Your Active Tickets</h5>
+
+{% if tickets %}
+    <div class="row g-4">
+        {% for ticket in tickets %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card card-modern h-100 position-relative">
+                
+                <div class="position-absolute top-0 start-0 h-100" 
+                     style="width: 6px; background: {% if ticket.status == 'ACTIVE' %}#198754{% elif ticket.status == 'USED' %}#6c757d{% else %}#0d6efd{% endif %};">
+                </div>
+
+                <div class="card-body p-4 ms-2">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge {% if ticket.status == 'ACTIVE' %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-3">
+                            {{ ticket.status }}
+                        </span>
+                        <small class="text-muted">{{ ticket.purchase_time|date:"M d, H:i" }}</small>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-4">
+                        <div>
+                            <div class="text-muted small text-uppercase">From</div>
+                            <div class="fw-bold fs-5">{{ ticket.source.name }}</div>
+                        </div>
+                        <div class="mx-3 text-muted">➝</div>
+                        <div>
+                            <div class="text-muted small text-uppercase">To</div>
+                            <div class="fw-bold fs-5">{{ ticket.destination.name }}</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-dashed">
+                        <div>
+                            <div class="small text-muted">Ticket ID</div>
+                            <div class="font-monospace fw-bold">#{{ ticket.id }}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">Price</div>
+                            <div class="fw-bold text-dark">${{ ticket.price }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <div class="display-1 text-muted mb-3"><i class="bi bi-ticket-detailed"></i></div>
+        <h4 class="text-muted">No tickets found.</h4>
+        <a href="{% url 'buy_ticket' %}" class="btn btn-primary mt-3">Buy your first ticket</a>
+    </div>
+{% endif %}
 {% endblock %}
